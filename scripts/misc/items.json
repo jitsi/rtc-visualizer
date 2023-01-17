@@ -1,0 +1,159 @@
+[
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "0000081a-2a21-44f8-975f-c980abb323fd.gz",
+    "logsId": "logs1.gz",
+    "userId": "user1",
+    "startDate": 1608023389469,
+    "endDate": 1608066717478,
+    "app": "Jitsi Meet",
+    "sessionId": "1"
+  },
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "000006c6-638f-47c2-9a4a-fc1750ca3022.gz",
+    "logsId": "logs1.gz",
+    "userId": "user2",
+    "startDate": 1608023389469,
+    "endDate": 1608066717478,
+    "app": "Jitsi Meet",
+    "sessionId": "1"
+  },
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "0000081a-2a21-44f8-975f-c980abb323fd.gz",
+    "logsId": "logs1.gz",
+    "userId": "user1",
+    "startDate": 1608023389469,
+    "endDate": 1608066717478,
+    "app": "Jitsi Meet",
+    "sessionId": "1"
+  },
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "000006c6-638f-47c2-9a4a-fc1750ca3022.gz",
+    "logsId": "logs1.gz",
+    "userId": "user2",
+    "startDate": 1608023389469,
+    "endDate": 1608066717478,
+    "app": "Jitsi Meet",
+    "sessionId": "2"
+  },
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "000013ca-e57c-490b-8a2a-485effe0f20f.gz",
+    "logsId": "logs1.gz",
+    "userId": "user3",
+    "startDate": 1608023389444,
+    "endDate": 1608066717478,
+    "app": "Jitsi Meet",
+    "sessionId": "2"
+  },
+  {
+    "conferenceId": "conf2",
+    "conferenceUrl": "meet.jit.si/conf2",
+    "dumpId": "000001ff-5a01-418c-839e-400e3eadb6b7.gz",
+    "logsId": "logs1.gz",
+    "userId": "user1",
+    "startDate": 1608023389469,
+    "endDate": 1608066717478,
+    "app": "Jitsi Meet",
+    "sessionId": "11"
+  },
+  {
+    "conferenceId": "conf3",
+    "conferenceUrl": "meet.jit.si/conf3",
+    "dumpId": "00000207-103e-4166-9c84-17217fe377e9.gz",
+    "logsId": "logs1.gz",
+    "userId": "user1",
+    "startDate": 1608023389469,
+    "endDate": 1608056166602,
+    "app": "Jitsi Meet",
+    "sessionId": "111"
+  },
+  {
+    "conferenceId": "conf3",
+    "conferenceUrl": "meet.jit.si/conf3",
+    "dumpId": "000003c6-6ee7-4186-b1ab-b06340b6b435.gz",
+    "logsId": "logs1.gz",
+    "userId": "user2",
+    "startDate": 1608023389469,
+    "endDate": 1608056166602,
+    "app": "Jitsi Meet",
+    "sessionId": "111"
+  },
+  {
+    "conferenceId": "conf4",
+    "conferenceUrl": "meet.jit.si/conf4",
+    "dumpId": "0000046d-7987-4093-a2d2-df554b8d5262.gz",
+    "logsId": "logs1.gz",
+    "userId": "user1",
+    "startDate": 1607987849840,
+    "endDate": 1608023389400,
+    "app": "Jitsi Meet",
+    "sessionId": "1111"
+  },
+  {
+    "conferenceId": "conf4",
+    "conferenceUrl": "meet.jit.si/conf4",
+    "dumpId": "0000047f-9e46-4d32-9257-462587e857be.gz",
+    "logsId": "logs1.gz",
+    "userId": "user2",
+    "startDate": 1607987849840,
+    "endDate": 1608023389500,
+    "app": "Jitsi Meet",
+    "sessionId": "1111"
+  },
+  {
+    "conferenceId": "conf4",
+    "conferenceUrl": "meet.jit.si/conf4",
+    "dumpId": "ffc83d7a-7540-479b-aec9-195925d08c22.gz",
+    "logsId": "logs1.gz",
+    "userId": "user3",
+    "startDate": 1607987849840,
+    "endDate": 1608023389300,
+    "app": "Jitsi Meet",
+    "sessionId": "1111"
+  },
+   {
+    "conferenceId": "conf5",
+    "conferenceUrl": "meet.jit.si/conf5",
+    "dumpId": "0000065f-4ff4-4c56-8652-9dd333b1d5db.gz",
+    "userId": "user3",
+    "startDate": 1607987849840,
+    "endDate": 1608023389300,
+    "app": "Jitsi Meet"
+  },
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "ffc83d7a-7540-479b-aec9-195925d08c22.gz",
+    "userId": "user22",
+    "startDate": 1607987849841,
+    "endDate": 1608023389301,
+    "app": "Jitsi Meet"
+  },
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "ff2e3a37-e955-4c74-8a92-db705730f5f6.gz",
+    "userId": "user23",
+    "startDate": 1607987849842,
+    "endDate": 1608023389309,
+    "app": "Jitsi Meet"
+  },
+  {
+    "conferenceId": "conf1",
+    "conferenceUrl": "meet.jit.si/conf1",
+    "dumpId": "ff2e3a37-e955-4c74-8a92-db705730f5f67.gz",
+    "userId": "",
+    "startDate": 1607987849843,
+    "endDate": 1608023389302,
+    "app": "Jitsi Meet"
+  }
+]

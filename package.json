@@ -1,0 +1,89 @@
+{
+  "name": "visualizer-server",
+  "version": "0.2.0",
+  "description": "Visualize RTC stats data",
+  "repository": "https://github.com/8x8Cloud/rtc-visualizer",
+  "author": "8x8",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build-client && npm run start-server",
+    "deploy": "./scripts/predeploy.sh && ./scripts/deploy.sh true",
+    "create-local-db": "node ./scripts/create-db.mjs",
+    "generate-items": "node ./scripts/generate-items.mjs",
+    "lint": "standard src scripts",
+    "lint-fix": "standard --fix src scripts",
+    "debug-server": "nodemon --exec 'NODE_ENV=debug ENDPOINT=http://localhost:8000 node --inspect ./src/server/index.mjs'",
+    "start-server": "NODE_ENV=production node ./src/server/index.mjs",
+    "build-client": "NODE_ENV=production webpack --mode=production --config ./webpack.config.js",
+    "watch-client": "NODE_ENV=development webpack --watch --mode=none --config ./webpack.config.js"
+  },
+  "standard": {
+    "globals": [
+      "Highcharts",
+      "fetch"
+    ]
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "corejs": "3.3.1",
+          "targets": {
+            "chrome": "80"
+          },
+          "useBuiltIns": "usage"
+        }
+      ],
+      [
+        "@babel/preset-react"
+      ]
+    ],
+    "plugins": [
+      [
+        "@babel/plugin-proposal-class-properties"
+      ],
+      [
+        "@babel/plugin-proposal-optional-chaining"
+      ]
+    ]
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "@babel/preset-env": "^7.12.11",
+    "@babel/preset-react": "^7.12.10",
+    "@types/node": "^14.14.22",
+    "babel-loader": "^8.2.2",
+    "css-loader": "^6.7.1",
+    "html-webpack-plugin": "^4.5.1",
+    "mini-svg-data-uri": "^1.2.3",
+    "nodemon": "^2.0.7",
+    "standard": "^16.0.3",
+    "style-loader": "^3.3.1",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.19.0",
+    "webpack-cli": "^4.4.0"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.9.0",
+    "aws-sdk": "^2.1265.0",
+    "console-feed": "^3.4.0",
+    "core-js": "^3.8.3",
+    "dotenv": "8.2.0",
+    "dynamoose": "^2.6.0",
+    "express": "^4.17.1",
+    "express-basic-auth": "^1.2.0",
+    "morgan": "^1.10.0",
+    "react": "^17.0.2",
+    "react-datepicker": "^4.8.0",
+    "react-dom": "^17.0.2",
+    "react-redux": "^7.2.9",
+    "react-tabs": "^4.2.1",
+    "redux-thunk": "^2.4.2",
+    "styled-components": "^5.2.1",
+    "winston": "^3.3.3"
+  }
+}
