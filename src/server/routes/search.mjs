@@ -27,9 +27,17 @@ const convertDateParams = initial => {
   return result
 }
 
+const cleanupConferenceId = initial => {
+  const result = Object.assign({}, initial)
+
+  if (result.conferenceId) { result.conferenceId = result.conferenceId.replace(/https?:\/\//, '') }
+
+  return result
+}
+
 router.get('/', async (req, res) => {
   const { query } = req
-  const params = convertDateParams(normalizeQueryParams(query))
+  const params = cleanupConferenceId(convertDateParams(normalizeQueryParams(query)))
 
   logger.info('Searching for:', params)
 
