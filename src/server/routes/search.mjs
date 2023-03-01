@@ -30,7 +30,20 @@ const convertDateParams = initial => {
 const cleanupConferenceId = initial => {
   const result = Object.assign({}, initial)
 
-  if (result.conferenceId) { result.conferenceId = result.conferenceId.replace(/https?:\/\//, '') }
+  // valid conference "identifiers":
+  //     71d7f70fe0c7cf018f8f3902ad7f37f002b0b607b0fda92c8ecc05ca409be217@conference.vpaas-magic-cookie-c7dd65380e584749a9a35a1b0b199ec0.8x8.vc
+  //     https://8x8.vc/vpaas-magic-cookie-c7dd65380e584749a9a35a1b0b199ec0/71d7f70fe0c7cf018f8f3902ad7f37f002b0b607b0fda92c8ecc05ca409be217
+  if (result.conferenceId) {
+    const match = result.conferenceId.match(/(?<conferenceName>^[^@]+)@conference\.(?<tenantName>[^.]+)\.(?<appName>[^.]+\.\w+)$/)
+    if (match) {
+      const conferenceName = match.groups.conferenceName
+      const tenantName = match.group.tenantName
+      const appName = match.group.appName
+      result.conferenceId = `${appName}/${tenantName}/${conferenceName}`
+    } else {
+      result.conferenceId = result.conferenceId.replace(/https?:\/\//, '')
+    }
+  }
 
   return result
 }
