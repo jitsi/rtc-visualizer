@@ -37,8 +37,8 @@ const cleanupConferenceId = initial => {
     const match = result.conferenceId.match(/(?<conferenceName>^[^@]+)@conference\.(?<tenantName>[^.]+)\.(?<appName>[^.]+\.\w+)$/)
     if (match) {
       const conferenceName = match.groups.conferenceName
-      const tenantName = match.group.tenantName
-      const appName = match.group.appName
+      const tenantName = match.groups.tenantName
+      const appName = match.groups.appName
       result.conferenceId = `${appName}/${tenantName}/${conferenceName}`
     } else {
       result.conferenceId = result.conferenceId.replace(/https?:\/\//, '')
