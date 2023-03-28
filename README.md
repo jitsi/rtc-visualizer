@@ -61,4 +61,4 @@ This will build the client, create a tag, create a docker image and push it to r
 
 ## Acknowledgements
 
-We use a customized version of [webrtc-internal-dumps](https://github.com/fippo/webrtc-dump-importer/) for plotting the client stats, which uses the Highcharts JS lib.  Note that the (awesome) Highcharts library used for plots may need a license. See http://shop.highsoft.com/
+We use a customized version of [webrtc-internal-dumps](https://github.com/fippo/webrtc-dump-importer/) for plotting the client stats, which uses the (awesome) Plotly library.

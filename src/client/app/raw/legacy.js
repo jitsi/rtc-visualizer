@@ -342,50 +342,38 @@ function processConnections (connectionIds, data) {
     chartContainer.id = 'chart_' + Date.now()
     container.appendChild(chartContainer)
 
-    const da = []
-    Object.keys(series[reportname]).forEach(function (name) {
-      if (name === 'type') return
-      da.push({
-        name: name,
-        data: series[reportname][name]
-      })
-    })
-    const graph = new Highcharts.Chart({
-      title: {
-        text: title
-      },
-      xAxis: {
-        type: 'datetime'
-      },
-      /*
-        yAxis: {
-        min: 0
-        },
-      */
-      chart: {
-        zoomType: 'x',
-        renderTo: chartContainer.id
-      },
-      series: da
-    })
-    graphs[connid][reportname] = graph;
+    const ignoredSeries = ['type', 'ssrc']
+    const hiddenSeries = [
+      'bytesReceived', 'bytesSent',
+      'headerBytesReceived', 'headerBytesSent',
+      'packetsReceived', 'packetsSent',
+      'qpSum', 'estimatedPlayoutTimestamp',
+      'framesEncoded', 'framesDecoded',
+      'lastPacketReceivedTimestamp', 'lastPacketSentTimestamp',
+      'remoteTimestamp',
+      'audioInputLevel', 'audioOutputLevel',
+      'totalSamplesDuration',
+      'totalSamplesReceived', 'jitterBufferEmittedCount',
+      // legacy
+      'googDecodingCTN', 'googDecodingCNG', 'googDecodingNormal',
+      'googDecodingPLCCNG', 'googDecodingCTSG', 'googDecodingMuted',
+      'googEchoCancellationEchoDelayStdDev',
+      'googCaptureStartNtpTimeMs'
+    ]
 
-    // draw checkbox to turn off everything
-    ((reportname, container, graph) => {
-      container.ontoggle = () => container.open && graph.reflow()
-      const checkbox = document.createElement('input')
-      checkbox.type = 'checkbox'
-      container.appendChild(checkbox)
-      const label = document.createElement('label')
-      label.innerText = 'Turn on/off all data series in ' + connid + ' ' + reportname
-      container.appendChild(label)
-      checkbox.onchange = function () {
-        graph.series.forEach(function (series) {
-          series.setVisible(!checkbox.checked, false)
-        })
-        graph.redraw()
+    const traces = Object.keys(series[reportname]).filter(name => !ignoredSeries.includes(name)).map(function (name) {
+      const data = series[reportname][name]
+      return {
+        mode: 'lines+markers',
+        name: name,
+        visible: hiddenSeries.includes(name) ? 'legendonly' : true,
+        x: data.map(d => new Date(d[0])),
+        y: data.map(d => d[1])
       }
-    })(reportname, container, graph)
+    })
+
+    // expand the graph when opening
+    container.ontoggle = () => container.open && Plotly.react(chartContainer, traces)
   }
 
   Object.keys(graphTypes).forEach(function (type) {

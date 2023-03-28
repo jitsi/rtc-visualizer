@@ -19,7 +19,7 @@
   },
   "standard": {
     "globals": [
-      "Highcharts",
+      "Plotly",
       "fetch"
     ]
   },
