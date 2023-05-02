@@ -29,7 +29,7 @@ export default ({ dumpId, userId, startDate, endDate, app }) => {
     <tr>
       <td>
         <Line><Emph width={50}>Name:</Emph> <Name><Black>{userId}</Black></Name></Line>
-        <Line><Emph width={50}>Link:</Emph> <Download href={Urls.Render(dumpId)} target='_blank'>{dumpId}</Download></Line>
+        <Line><Emph width={50}>Link:</Emph> <Download href={Urls.Render(dumpId)} target='_blank'>{dumpId}</Download> <Download href={Urls.Download(dumpId)}>💾</Download></Line>
         <Line><Emph width={50}>Join:</Emph> {formatDate(startDate)}</Line>
         <Line><Emph width={50}>Leave:</Emph> {formatDate(endDate)}</Line>
         <Line><Emph width={50}>App: </Emph> {app}</Line>

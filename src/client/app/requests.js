@@ -13,7 +13,9 @@ export const Urls = {
 
   File: name => `/files/${name}`,
 
-  Render: name => `/?dumpId=${name}`
+  Render: name => `/?dumpId=${name}`,
+
+  Download: name => `/download/${name}`
 }
 
 export const makeRequest = (
