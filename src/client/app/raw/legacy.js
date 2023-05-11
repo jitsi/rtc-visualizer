@@ -1,3 +1,5 @@
+import Plotly from 'plotly.js-dist';
+
 const fileFormat = 2
 
 function createContainers (connid, url) {
