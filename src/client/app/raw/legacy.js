@@ -1,80 +1,79 @@
 const fileFormat = 2
 
-
-function createLegacyCandidateTable(container, stun) {
+function createLegacyCandidateTable (container, stun) {
   // for ice candidates
   const head = document.createElement('tr');
   [
-      'Local address',
-      'Local type',
-      'Local id',
-      'Remote address',
-      'Remote type',
-      'Remote id',
-      'Requests sent', 'Responses received',
-      'Requests received', 'Responses sent',
-      'Active Connection',
+    'Local address',
+    'Local type',
+    'Local id',
+    'Remote address',
+    'Remote type',
+    'Remote id',
+    'Requests sent', 'Responses received',
+    'Requests received', 'Responses sent',
+    'Active Connection'
   ].forEach((text) => {
-      const el = document.createElement('td');
-      el.innerText = text;
-      head.appendChild(el);
-  });
-  container.appendChild(head);
+    const el = document.createElement('td')
+    el.innerText = text
+    head.appendChild(el)
+  })
+  container.appendChild(head)
 
-  for (t in stun) {
-      const row = document.createElement('tr');
-      [
-          'googLocalAddress', 'googLocalCandidateType', 'localCandidateId',
-          'googRemoteAddress', 'googRemoteCandidateType', 'remoteCandidateId',
-          'requestsSent', 'responsesReceived',
-          'requestsReceived', 'responsesSent',
-          'googActiveConnection', /* consentRequestsSent, */
-      ].forEach((id) => {
-          const el = document.createElement('td');
-          el.innerText = stun[t][id];
-          row.appendChild(el);
-      });
-      container.appendChild(row);
+  for (const t in stun) {
+    const row = document.createElement('tr');
+    [
+      'googLocalAddress', 'googLocalCandidateType', 'localCandidateId',
+      'googRemoteAddress', 'googRemoteCandidateType', 'remoteCandidateId',
+      'requestsSent', 'responsesReceived',
+      'requestsReceived', 'responsesSent',
+      'googActiveConnection' /* consentRequestsSent, */
+    ].forEach((id) => {
+      const el = document.createElement('td')
+      el.innerText = stun[t][id]
+      row.appendChild(el)
+    })
+    container.appendChild(row)
   }
 }
 
-function createSpecCandidateTable(container, allGroupedStats) {
+function createSpecCandidateTable (container, allGroupedStats) {
   const head = document.createElement('tr');
   [
-      'Transport id',
-      'Candidate pair id',
-      'Candidate id',
-      '', // local/remote, leave empty
-      'type',
-      'address',
-      'port',
-      'protocol',
-      'priority / relayProtocol',
-      'interface',
+    'Transport id',
+    'Candidate pair id',
+    'Candidate id',
+    '', // local/remote, leave empty
+    'type',
+    'address',
+    'port',
+    'protocol',
+    'priority / relayProtocol',
+    'interface'
   ].forEach((text) => {
-      const el = document.createElement('td');
-      el.innerText = text;
-      head.appendChild(el);
-  });
-  container.appendChild(head);
+    const el = document.createElement('td')
+    el.innerText = text
+    head.appendChild(el)
+  })
+  container.appendChild(head)
 
-  const transports = {};
-  const pairs = {};
-  const candidates = {};
+  const transports = {}
+  const pairs = {}
+  const candidates = {}
 
   // massaging the data is different than in fippo's tool
   Object.keys(allGroupedStats).forEach(objectName => {
-    const groupedStats = {}; // avoid modifying the original object
+    const groupedStats = {} // avoid modifying the original object
     Object.keys(allGroupedStats[objectName]).forEach(comp => {
       if (Array.isArray(allGroupedStats[objectName][comp])) {
-        const lastIdx = allGroupedStats[objectName][comp].length - 1;
-        groupedStats[comp] = allGroupedStats[objectName][comp][lastIdx][1];
+        const lastIdx = allGroupedStats[objectName][comp].length - 1
+        groupedStats[comp] = allGroupedStats[objectName][comp][lastIdx][1]
       } else {
-        groupedStats[comp] = allGroupedStats[objectName][comp];
+        groupedStats[comp] = allGroupedStats[objectName][comp]
       }
     })
     if (groupedStats.type === 'transport' || objectName.startsWith('RTCTransport')) {
-      transports[objectName] = groupedStats;
+      transports[objectName] = groupedStats
     } else if (groupedStats.type === 'candidate-pair' || objectName.startsWith('RTCIceCandidatePair')) {
       pairs[objectName] = groupedStats
     } else if (['local-candidate', 'remote-candidate'].includes(groupedStats.type) || objectName.startsWith('RTCIceCandidate')) {
@@ -83,88 +82,88 @@ function createSpecCandidateTable(container, allGroupedStats) {
   })
 
   for (const t in transports) {
-      let row = document.createElement('tr');
+    let row = document.createElement('tr')
 
-      let el = document.createElement('td');
-      el.innerText = t;
-      row.appendChild(el);
+    let el = document.createElement('td')
+    el.innerText = t
+    row.appendChild(el)
 
-      el = document.createElement('td');
-      el.innerText = transports[t].selectedCandidatePairId;
-      row.appendChild(el);
+    el = document.createElement('td')
+    el.innerText = transports[t].selectedCandidatePairId
+    row.appendChild(el)
 
+    for (let i = 2; i < head.childElementCount; i++) {
+      el = document.createElement('td')
+      row.appendChild(el)
+    }
+
+    container.appendChild(row)
+
+    for (const p in pairs) {
+      if (pairs[p].transportId !== t) continue
+      const pair = pairs[p]
+      row = document.createElement('tr')
+
+      row.appendChild(document.createElement('td'))
+
+      el = document.createElement('td')
+      el.innerText = p
+      row.appendChild(el)
+
+      container.appendChild(row)
       for (let i = 2; i < head.childElementCount; i++) {
-          el = document.createElement('td');
-          row.appendChild(el);
+        el = document.createElement('td')
+        if (i === 8) {
+          el.innerText = pair.priority
+        }
+        row.appendChild(el)
       }
 
-      container.appendChild(row);
+      for (const c in candidates) {
+        if (!(c === pair.localCandidateId || c === pair.remoteCandidateId)) continue
+        const candidate = candidates[c]
+        row = document.createElement('tr')
 
-      for (const p in pairs) {
-          if (pairs[p].transportId !== t) continue;
-          const pair = pairs[p];
-          row = document.createElement('tr');
+        row.appendChild(document.createElement('td'))
+        row.appendChild(document.createElement('td'))
+        el = document.createElement('td')
+        el.innerText = c
+        row.appendChild(el)
 
-          row.appendChild(document.createElement('td'));
+        el = document.createElement('td')
+        el.innerText = candidate.isRemote ? 'remote' : 'local'
+        row.appendChild(el)
 
-          el = document.createElement('td');
-          el.innerText = p;
-          row.appendChild(el);
+        el = document.createElement('td')
+        el.innerText = candidate.candidateType
+        row.appendChild(el)
 
-          container.appendChild(row);
-          for (let i = 2; i < head.childElementCount; i++) {
-              el = document.createElement('td');
-              if (i === 8) {
-                  el.innerText = pair.priority;
-              }
-              row.appendChild(el);
-          }
+        el = document.createElement('td')
+        el.innerText = candidate.address || candidate.ip
+        row.appendChild(el)
 
-          for (const c in candidates) {
-              if (!(c === pair.localCandidateId || c === pair.remoteCandidateId)) continue;
-              const candidate = candidates[c];
-              row = document.createElement('tr');
+        el = document.createElement('td')
+        el.innerText = candidate.port
+        row.appendChild(el)
 
-              row.appendChild(document.createElement('td'));
-              row.appendChild(document.createElement('td'));
-              el = document.createElement('td');
-              el.innerText = c;
-              row.appendChild(el);
+        el = document.createElement('td')
+        el.innerText = candidate.protocol
+        row.appendChild(el)
 
-              el = document.createElement('td');
-              el.innerText = candidate.isRemote ? 'remote' : 'local';
-              row.appendChild(el);
+        el = document.createElement('td')
+        el.innerText = candidate.priority
+        if (candidate.relayProtocol) {
+          el.innerText += ' ' + candidate.relayProtocol
+        }
+        row.appendChild(el)
 
-              el = document.createElement('td');
-              el.innerText = candidate.candidateType;
-              row.appendChild(el);
+        el = document.createElement('td')
+        el.innerText = candidate.networkType || 'unknown'
+        row.appendChild(el)
 
-              el = document.createElement('td');
-              el.innerText = candidate.address || candidate.ip;
-              row.appendChild(el);
-
-              el = document.createElement('td');
-              el.innerText = candidate.port;
-              row.appendChild(el);
-
-              el = document.createElement('td');
-              el.innerText = candidate.protocol;
-              row.appendChild(el);
-
-              el = document.createElement('td');
-              el.innerText = candidate.priority;
-              if (candidate.relayProtocol) {
-                  el.innerText += ' ' + candidate.relayProtocol;
-              }
-              row.appendChild(el);
-
-              el = document.createElement('td');
-              el.innerText = candidate.networkType || 'unknown';
-              row.appendChild(el);
-
-              container.appendChild(row);
-          }
+        container.appendChild(row)
       }
+    }
   }
 }
 
@@ -408,9 +407,9 @@ function processConnections (connectionIds, data) {
 
     if (Object.keys(stun).length === 0) {
       // spec-stats. A bit more complicated... we need the transport and then the candidate pair and the local/remote candidates.
-      createSpecCandidateTable(containers[connid].candidates, series);
+      createSpecCandidateTable(containers[connid].candidates, series)
     } else {
-      createLegacyCandidateTable(containers[connid].candidates, stun);
+      createLegacyCandidateTable(containers[connid].candidates, stun)
     }
   }
   const graphTypes = {}
