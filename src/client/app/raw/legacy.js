@@ -1,7 +1,45 @@
 const fileFormat = 2
 
+
+function createLegacyCandidateTable(container, stun) {
+  // for ice candidates
+  const head = document.createElement('tr');
+  [
+      'Local address',
+      'Local type',
+      'Local id',
+      'Remote address',
+      'Remote type',
+      'Remote id',
+      'Requests sent', 'Responses received',
+      'Requests received', 'Responses sent',
+      'Active Connection',
+  ].forEach((text) => {
+      const el = document.createElement('td');
+      el.innerText = text;
+      head.appendChild(el);
+  });
+  container.appendChild(head);
+
+  for (t in stun) {
+      const row = document.createElement('tr');
+      [
+          'googLocalAddress', 'googLocalCandidateType', 'localCandidateId',
+          'googRemoteAddress', 'googRemoteCandidateType', 'remoteCandidateId',
+          'requestsSent', 'responsesReceived',
+          'requestsReceived', 'responsesSent',
+          'googActiveConnection', /* consentRequestsSent, */
+      ].forEach((id) => {
+          const el = document.createElement('td');
+          el.innerText = stun[t][id];
+          row.appendChild(el);
+      });
+      container.appendChild(row);
+  }
+}
+
 function createContainers (connid, url) {
-  let el, signalingState, iceConnectionState, connectionState, ice
+  let signalingState, iceConnectionState, connectionState, candidates
   const container = document.createElement('details')
   container.open = true
   container.style.margin = '10px'
@@ -27,59 +65,10 @@ function createContainers (connid, url) {
     connectionState.id = 'connectionstate_' + connid
     connectionState.textContent = 'Connection state:'
     container.appendChild(connectionState)
-  }
 
-  if (connid !== 'null') {
-    // for ice candidates
-    const iceContainer = document.createElement('details')
-    iceContainer.open = true
-    summary = document.createElement('summary')
-    summary.innerText = 'ICE candidate grid'
-    iceContainer.appendChild(summary)
-
-    ice = document.createElement('table')
-    ice.className = 'candidatepairtable'
-    const head = document.createElement('tr')
-    ice.appendChild(head)
-
-    el = document.createElement('td')
-    el.innerText = 'Local address'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Local type'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Remote address'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Remote type'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Requests sent'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Responses received'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Requests received'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Responses sent'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Active Connection'
-    head.appendChild(el)
-
-    iceContainer.appendChild(ice)
-    container.appendChild(iceContainer)
+    candidates = document.createElement('table')
+    candidates.className = 'candidatepairtable'
+    container.appendChild(candidates)
   }
 
   const updateLogContainer = document.createElement('details')
@@ -101,7 +90,7 @@ function createContainers (connid, url) {
     iceConnectionState,
     connectionState,
     signalingState,
-    candidates: ice,
+    candidates,
     graphs
   }
 
@@ -279,56 +268,10 @@ function processConnections (connectionIds, data) {
         stats = interestingStats[reportname]
         stun.push(stats)
       }
-    }
-    for (t in stun) {
-      const row = document.createElement('tr')
-      let el
 
-      el = document.createElement('td')
-      el.innerText = stun[t].googLocalAddress
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googLocalCandidateType
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googRemoteAddress
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googRemoteCandidateType
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].requestsSent
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].responsesReceived
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].requestsReceived
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].responsesSent
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googActiveConnection
-      row.appendChild(el)
-      /*
-        el = document.createElement('td');
-        el.innerText = stun[t].consentRequestsSent;
-        row.appendChild(el);
-      */
-
-      containers[connid].candidates.appendChild(row)
+      createLegacyCandidateTable(containers[connid].candidates, stun)
     }
   }
-
   const graphTypes = {}
   const graphSelectorContainer = document.createElement('div')
   containers[connid].graphs.appendChild(graphSelectorContainer)
