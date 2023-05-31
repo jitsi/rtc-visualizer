@@ -1,6 +1,6 @@
 {
   "name": "visualizer-server",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "Visualize RTC stats data",
   "repository": "https://github.com/8x8Cloud/rtc-visualizer",
   "author": "8x8",
