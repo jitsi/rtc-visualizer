@@ -166,7 +166,19 @@ function processTraceEvent (table, event) {
   if (event.type.indexOf('Failure') !== -1) {
     row.style.backgroundColor = 'red'
   }
-  if (event.type === 'iceConnectionStateChange') {
+
+  if (event.type === 'oniceconnectionstatechange') {
+    switch (event.value) {
+      case 'connected':
+      case 'completed':
+        row.style.backgroundColor = 'green'
+        break
+      case 'failed':
+        row.style.backgroundColor = 'red'
+        break
+    }
+  } else if (event.type === 'iceConnectionStateChange') {
+    // Legacy variant, probably broken by now since the values changed.
     switch (event.value) {
       case 'ICEConnectionStateConnected':
       case 'ICEConnectionStateCompleted':
