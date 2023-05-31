@@ -38,6 +38,136 @@ function createLegacyCandidateTable(container, stun) {
   }
 }
 
+function createSpecCandidateTable(container, allGroupedStats) {
+  const head = document.createElement('tr');
+  [
+      'Transport id',
+      'Candidate pair id',
+      'Candidate id',
+      '', // local/remote, leave empty
+      'type',
+      'address',
+      'port',
+      'protocol',
+      'priority / relayProtocol',
+      'interface',
+  ].forEach((text) => {
+      const el = document.createElement('td');
+      el.innerText = text;
+      head.appendChild(el);
+  });
+  container.appendChild(head);
+
+  const transports = {};
+  const pairs = {};
+  const candidates = {};
+
+  // massaging the data is different than in fippo's tool
+  Object.keys(allGroupedStats).forEach(objectName => {
+    const groupedStats = {}; // avoid modifying the original object
+    Object.keys(allGroupedStats[objectName]).forEach(comp => {
+      if (Array.isArray(allGroupedStats[objectName][comp])) {
+        const lastIdx = allGroupedStats[objectName][comp].length - 1;
+        groupedStats[comp] = allGroupedStats[objectName][comp][lastIdx][1];
+      } else {
+        groupedStats[comp] = allGroupedStats[objectName][comp];
+      }
+    })
+    if (groupedStats.type === 'transport' || objectName.startsWith('RTCTransport')) {
+      transports[objectName] = groupedStats;
+    } else if (groupedStats.type === 'candidate-pair' || objectName.startsWith('RTCIceCandidatePair')) {
+      pairs[objectName] = groupedStats
+    } else if (['local-candidate', 'remote-candidate'].includes(groupedStats.type) || objectName.startsWith('RTCIceCandidate')) {
+      candidates[objectName] = groupedStats
+    }
+  })
+
+  for (const t in transports) {
+      let row = document.createElement('tr');
+
+      let el = document.createElement('td');
+      el.innerText = t;
+      row.appendChild(el);
+
+      el = document.createElement('td');
+      el.innerText = transports[t].selectedCandidatePairId;
+      row.appendChild(el);
+
+      for (let i = 2; i < head.childElementCount; i++) {
+          el = document.createElement('td');
+          row.appendChild(el);
+      }
+
+      container.appendChild(row);
+
+      for (const p in pairs) {
+          if (pairs[p].transportId !== t) continue;
+          const pair = pairs[p];
+          row = document.createElement('tr');
+
+          row.appendChild(document.createElement('td'));
+
+          el = document.createElement('td');
+          el.innerText = p;
+          row.appendChild(el);
+
+          container.appendChild(row);
+          for (let i = 2; i < head.childElementCount; i++) {
+              el = document.createElement('td');
+              if (i === 8) {
+                  el.innerText = pair.priority;
+              }
+              row.appendChild(el);
+          }
+
+          for (const c in candidates) {
+              if (!(c === pair.localCandidateId || c === pair.remoteCandidateId)) continue;
+              const candidate = candidates[c];
+              row = document.createElement('tr');
+
+              row.appendChild(document.createElement('td'));
+              row.appendChild(document.createElement('td'));
+              el = document.createElement('td');
+              el.innerText = c;
+              row.appendChild(el);
+
+              el = document.createElement('td');
+              el.innerText = candidate.isRemote ? 'remote' : 'local';
+              row.appendChild(el);
+
+              el = document.createElement('td');
+              el.innerText = candidate.candidateType;
+              row.appendChild(el);
+
+              el = document.createElement('td');
+              el.innerText = candidate.address || candidate.ip;
+              row.appendChild(el);
+
+              el = document.createElement('td');
+              el.innerText = candidate.port;
+              row.appendChild(el);
+
+              el = document.createElement('td');
+              el.innerText = candidate.protocol;
+              row.appendChild(el);
+
+              el = document.createElement('td');
+              el.innerText = candidate.priority;
+              if (candidate.relayProtocol) {
+                  el.innerText += ' ' + candidate.relayProtocol;
+              }
+              row.appendChild(el);
+
+              el = document.createElement('td');
+              el.innerText = candidate.networkType || 'unknown';
+              row.appendChild(el);
+
+              container.appendChild(row);
+          }
+      }
+  }
+}
+
 function createContainers (connid, url) {
   let signalingState, iceConnectionState, connectionState, candidates
   const container = document.createElement('details')
@@ -248,6 +378,9 @@ function processConnections (connectionIds, data) {
             } else {
               series[id][name].push([new Date(connection[i].time).getTime(), stats[id][name]])
             }
+          } else if (series[id]) {
+            // include plain strings in the object, like the 'transportId' (we use this in the new transports grid)
+            series[id][name] = stats[id][name]
           }
         })
       })
@@ -257,19 +390,27 @@ function processConnections (connectionIds, data) {
       lastStats = connection[i].value
     }
   }
-  const interestingStats = lastStats // might be last stats which contain more counters
-  if (interestingStats) {
-    const stun = []
-    let t
-    for (reportname in interestingStats) {
-      if (reportname.indexOf('Conn-') === 0) {
-        t = reportname.split('-')
-        t = t.join('-')
-        stats = interestingStats[reportname]
-        stun.push(stats)
-      }
 
-      createLegacyCandidateTable(containers[connid].candidates, stun)
+  if (containers[connid].candidates /* we don't show this for the callstats PC (id: null) */) {
+    const interestingStats = lastStats // might be last stats which contain more counters
+    const stun = []
+    if (interestingStats) {
+      let t
+      for (reportname in interestingStats) {
+        if (reportname.indexOf('Conn-') === 0) {
+          t = reportname.split('-')
+          t = t.join('-')
+          stats = interestingStats[reportname]
+          stun.push(stats)
+        }
+      }
+    }
+
+    if (Object.keys(stun).length === 0) {
+      // spec-stats. A bit more complicated... we need the transport and then the candidate pair and the local/remote candidates.
+      createSpecCandidateTable(containers[connid].candidates, series);
+    } else {
+      createLegacyCandidateTable(containers[connid].candidates, stun);
     }
   }
   const graphTypes = {}
@@ -316,16 +457,20 @@ function processConnections (connectionIds, data) {
       'googCaptureStartNtpTimeMs'
     ]
 
-    const traces = Object.keys(series[reportname]).filter(name => !ignoredSeries.includes(name)).map(function (name) {
-      const data = series[reportname][name]
-      return {
-        mode: 'lines+markers',
-        name: name,
-        visible: hiddenSeries.includes(name) ? 'legendonly' : true,
-        x: data.map(d => new Date(d[0])),
-        y: data.map(d => d[1])
-      }
-    })
+    const traces = Object.keys(series[reportname])
+      .filter(name => !ignoredSeries.includes(name))
+      // exclude stats that aren't series like the 'transportId' field that we use this in the new transports grid
+      .filter(name => Array.isArray(series[reportname][name]))
+      .map(function (name) {
+        const data = series[reportname][name]
+        return {
+          mode: 'lines+markers',
+          name: name,
+          visible: hiddenSeries.includes(name) ? 'legendonly' : true,
+          x: data.map(d => new Date(d[0])),
+          y: data.map(d => d[1])
+        }
+      })
 
     // expand the graph when opening
     container.ontoggle = () => container.open && Plotly.react(chartContainer, traces)
