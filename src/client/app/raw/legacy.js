@@ -2,8 +2,175 @@ import Plotly from 'plotly.js-dist';
 
 const fileFormat = 2
 
+function createLegacyCandidateTable (container, stun) {
+  // for ice candidates
+  const head = document.createElement('tr');
+  [
+    'Local address',
+    'Local type',
+    'Local id',
+    'Remote address',
+    'Remote type',
+    'Remote id',
+    'Requests sent', 'Responses received',
+    'Requests received', 'Responses sent',
+    'Active Connection'
+  ].forEach((text) => {
+    const el = document.createElement('td')
+    el.innerText = text
+    head.appendChild(el)
+  })
+  container.appendChild(head)
+
+  for (const t in stun) {
+    const row = document.createElement('tr');
+    [
+      'googLocalAddress', 'googLocalCandidateType', 'localCandidateId',
+      'googRemoteAddress', 'googRemoteCandidateType', 'remoteCandidateId',
+      'requestsSent', 'responsesReceived',
+      'requestsReceived', 'responsesSent',
+      'googActiveConnection' /* consentRequestsSent, */
+    ].forEach((id) => {
+      const el = document.createElement('td')
+      el.innerText = stun[t][id]
+      row.appendChild(el)
+    })
+    container.appendChild(row)
+  }
+}
+
+function createSpecCandidateTable (container, allGroupedStats) {
+  const head = document.createElement('tr');
+  [
+    'Transport id',
+    'Candidate pair id',
+    'Candidate id',
+    '', // local/remote, leave empty
+    'type',
+    'address',
+    'port',
+    'protocol',
+    'priority / relayProtocol',
+    'interface'
+  ].forEach((text) => {
+    const el = document.createElement('td')
+    el.innerText = text
+    head.appendChild(el)
+  })
+  container.appendChild(head)
+
+  const transports = {}
+  const pairs = {}
+  const candidates = {}
+
+  // massaging the data is different than in fippo's tool
+  Object.keys(allGroupedStats).forEach(objectName => {
+    const groupedStats = {} // avoid modifying the original object
+    Object.keys(allGroupedStats[objectName]).forEach(comp => {
+      if (Array.isArray(allGroupedStats[objectName][comp])) {
+        const lastIdx = allGroupedStats[objectName][comp].length - 1
+        groupedStats[comp] = allGroupedStats[objectName][comp][lastIdx][1]
+      } else {
+        groupedStats[comp] = allGroupedStats[objectName][comp]
+      }
+    })
+    if (groupedStats.type === 'transport' || objectName.startsWith('RTCTransport')) {
+      transports[objectName] = groupedStats
+    } else if (groupedStats.type === 'candidate-pair' || objectName.startsWith('RTCIceCandidatePair')) {
+      pairs[objectName] = groupedStats
+    } else if (['local-candidate', 'remote-candidate'].includes(groupedStats.type) || objectName.startsWith('RTCIceCandidate')) {
+      candidates[objectName] = groupedStats
+    }
+  })
+
+  for (const t in transports) {
+    let row = document.createElement('tr')
+
+    let el = document.createElement('td')
+    el.innerText = t
+    row.appendChild(el)
+
+    el = document.createElement('td')
+    el.innerText = transports[t].selectedCandidatePairId
+    row.appendChild(el)
+
+    for (let i = 2; i < head.childElementCount; i++) {
+      el = document.createElement('td')
+      row.appendChild(el)
+    }
+
+    container.appendChild(row)
+
+    for (const p in pairs) {
+      if (pairs[p].transportId !== t) continue
+      const pair = pairs[p]
+      row = document.createElement('tr')
+
+      row.appendChild(document.createElement('td'))
+
+      el = document.createElement('td')
+      el.innerText = p
+      row.appendChild(el)
+
+      container.appendChild(row)
+      for (let i = 2; i < head.childElementCount; i++) {
+        el = document.createElement('td')
+        if (i === 8) {
+          el.innerText = pair.priority
+        }
+        row.appendChild(el)
+      }
+
+      for (const c in candidates) {
+        if (!(c === pair.localCandidateId || c === pair.remoteCandidateId)) continue
+        const candidate = candidates[c]
+        row = document.createElement('tr')
+
+        row.appendChild(document.createElement('td'))
+        row.appendChild(document.createElement('td'))
+        el = document.createElement('td')
+        el.innerText = c
+        row.appendChild(el)
+
+        el = document.createElement('td')
+        el.innerText = candidate.isRemote ? 'remote' : 'local'
+        row.appendChild(el)
+
+        el = document.createElement('td')
+        el.innerText = candidate.candidateType
+        row.appendChild(el)
+
+        el = document.createElement('td')
+        el.innerText = candidate.address || candidate.ip
+        row.appendChild(el)
+
+        el = document.createElement('td')
+        el.innerText = candidate.port
+        row.appendChild(el)
+
+        el = document.createElement('td')
+        el.innerText = candidate.protocol
+        row.appendChild(el)
+
+        el = document.createElement('td')
+        el.innerText = candidate.priority
+        if (candidate.relayProtocol) {
+          el.innerText += ' ' + candidate.relayProtocol
+        }
+        row.appendChild(el)
+
+        el = document.createElement('td')
+        el.innerText = candidate.networkType || 'unknown'
+        row.appendChild(el)
+
+        container.appendChild(row)
+      }
+    }
+  }
+}
+
 function createContainers (connid, url) {
-  let el, signalingState, iceConnectionState, connectionState, ice
+  let signalingState, iceConnectionState, connectionState, candidates
   const container = document.createElement('details')
   container.open = true
   container.style.margin = '10px'
@@ -29,59 +196,10 @@ function createContainers (connid, url) {
     connectionState.id = 'connectionstate_' + connid
     connectionState.textContent = 'Connection state:'
     container.appendChild(connectionState)
-  }
 
-  if (connid !== 'null') {
-    // for ice candidates
-    const iceContainer = document.createElement('details')
-    iceContainer.open = true
-    summary = document.createElement('summary')
-    summary.innerText = 'ICE candidate grid'
-    iceContainer.appendChild(summary)
-
-    ice = document.createElement('table')
-    ice.className = 'candidatepairtable'
-    const head = document.createElement('tr')
-    ice.appendChild(head)
-
-    el = document.createElement('td')
-    el.innerText = 'Local address'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Local type'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Remote address'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Remote type'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Requests sent'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Responses received'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Requests received'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Responses sent'
-    head.appendChild(el)
-
-    el = document.createElement('td')
-    el.innerText = 'Active Connection'
-    head.appendChild(el)
-
-    iceContainer.appendChild(ice)
-    container.appendChild(iceContainer)
+    candidates = document.createElement('table')
+    candidates.className = 'candidatepairtable'
+    container.appendChild(candidates)
   }
 
   const updateLogContainer = document.createElement('details')
@@ -103,7 +221,7 @@ function createContainers (connid, url) {
     iceConnectionState,
     connectionState,
     signalingState,
-    candidates: ice,
+    candidates,
     graphs
   }
 
@@ -168,7 +286,19 @@ function processTraceEvent (table, event) {
   if (event.type.indexOf('Failure') !== -1) {
     row.style.backgroundColor = 'red'
   }
-  if (event.type === 'iceConnectionStateChange') {
+
+  if (event.type === 'oniceconnectionstatechange') {
+    switch (event.value) {
+      case 'connected':
+      case 'completed':
+        row.style.backgroundColor = 'green'
+        break
+      case 'failed':
+        row.style.backgroundColor = 'red'
+        break
+    }
+  } else if (event.type === 'iceConnectionStateChange') {
+    // Legacy variant, probably broken by now since the values changed.
     switch (event.value) {
       case 'ICEConnectionStateConnected':
       case 'ICEConnectionStateCompleted':
@@ -249,6 +379,9 @@ function processConnections (connectionIds, data) {
             } else {
               series[id][name].push([new Date(connection[i].time).getTime(), stats[id][name]])
             }
+          } else if (series[id]) {
+            // include plain strings in the object, like the 'transportId' (we use this in the new transports grid)
+            series[id][name] = stats[id][name]
           }
         })
       })
@@ -258,67 +391,29 @@ function processConnections (connectionIds, data) {
       lastStats = connection[i].value
     }
   }
-  const interestingStats = lastStats // might be last stats which contain more counters
-  if (interestingStats) {
+
+  if (containers[connid].candidates /* we don't show this for the callstats PC (id: null) */) {
+    const interestingStats = lastStats // might be last stats which contain more counters
     const stun = []
-    let t
-    for (reportname in interestingStats) {
-      if (reportname.indexOf('Conn-') === 0) {
-        t = reportname.split('-')
-        t = t.join('-')
-        stats = interestingStats[reportname]
-        stun.push(stats)
+    if (interestingStats) {
+      let t
+      for (reportname in interestingStats) {
+        if (reportname.indexOf('Conn-') === 0) {
+          t = reportname.split('-')
+          t = t.join('-')
+          stats = interestingStats[reportname]
+          stun.push(stats)
+        }
       }
     }
-    for (t in stun) {
-      const row = document.createElement('tr')
-      let el
 
-      el = document.createElement('td')
-      el.innerText = stun[t].googLocalAddress
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googLocalCandidateType
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googRemoteAddress
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googRemoteCandidateType
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].requestsSent
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].responsesReceived
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].requestsReceived
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].responsesSent
-      row.appendChild(el)
-
-      el = document.createElement('td')
-      el.innerText = stun[t].googActiveConnection
-      row.appendChild(el)
-      /*
-        el = document.createElement('td');
-        el.innerText = stun[t].consentRequestsSent;
-        row.appendChild(el);
-      */
-
-      containers[connid].candidates.appendChild(row)
+    if (Object.keys(stun).length === 0) {
+      // spec-stats. A bit more complicated... we need the transport and then the candidate pair and the local/remote candidates.
+      createSpecCandidateTable(containers[connid].candidates, series)
+    } else {
+      createLegacyCandidateTable(containers[connid].candidates, stun)
     }
   }
-
   const graphTypes = {}
   const graphSelectorContainer = document.createElement('div')
   containers[connid].graphs.appendChild(graphSelectorContainer)
@@ -363,16 +458,20 @@ function processConnections (connectionIds, data) {
       'googCaptureStartNtpTimeMs'
     ]
 
-    const traces = Object.keys(series[reportname]).filter(name => !ignoredSeries.includes(name)).map(function (name) {
-      const data = series[reportname][name]
-      return {
-        mode: 'lines+markers',
-        name: name,
-        visible: hiddenSeries.includes(name) ? 'legendonly' : true,
-        x: data.map(d => new Date(d[0])),
-        y: data.map(d => d[1])
-      }
-    })
+    const traces = Object.keys(series[reportname])
+      .filter(name => !ignoredSeries.includes(name))
+      // exclude stats that aren't series like the 'transportId' field that we use this in the new transports grid
+      .filter(name => Array.isArray(series[reportname][name]))
+      .map(function (name) {
+        const data = series[reportname][name]
+        return {
+          mode: 'lines+markers',
+          name: name,
+          visible: hiddenSeries.includes(name) ? 'legendonly' : true,
+          x: data.map(d => new Date(d[0])),
+          y: data.map(d => d[1])
+        }
+      })
 
     // expand the graph when opening
     container.ontoggle = () => container.open && Plotly.react(chartContainer, traces)
