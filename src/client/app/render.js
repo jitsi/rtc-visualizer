@@ -5,7 +5,7 @@ import 'react-tabs/style/react-tabs.css'
 import { showStats } from './raw/legacy'
 import { getFileStatus } from './files/selectors'
 import { Console } from 'console-feed'
-import { fetchFile } from './files/actions'
+import { fetchFileBasicAuth, fetchFileJWTAuth } from './files/actions'
 
 export default () => {
   const dispatch = useDispatch()
@@ -13,8 +13,13 @@ export default () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const dumpId = params.get('dumpId')
+    const useJWTAuthorization = params.get('useJWTAuthorization')
     if (dumpId) {
-      dispatch(fetchFile(dumpId))
+      if (useJWTAuthorization) {
+        dispatch(fetchFileJWTAuth(dumpId))
+      } else {
+        dispatch(fetchFileBasicAuth(dumpId))
+      }
     }
   }, [dispatch])
 

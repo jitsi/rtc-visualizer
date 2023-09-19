@@ -13,14 +13,22 @@ const fetchFileError = (name, error) => ({
   }
 })
 
-export const fetchFile = name => async (dispatch) => {
+export const fetchFileBasicAuth = name => fetchFile(name, false)
+
+export const fetchFileJWTAuth = name => fetchFile(name, true)
+
+const fetchFile = (name, jwtAuthorization) => async (dispatch, getState) => {
+  const { config: { filesEndpoint = '' } = {} } = getState()
+
+  const fileUrl = jwtAuthorization ? Urls.JWTFile(name, filesEndpoint) : Urls.File(name)
+
   dispatch({
     type: Actions.FetchFileStart,
     payload: name
   })
 
   try {
-    const res = await fetch(Urls.File(name))
+    const res = await fetch(fileUrl)
 
     dispatch({
       type: Actions.FetchFileFinish,

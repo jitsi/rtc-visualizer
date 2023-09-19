@@ -28,7 +28,7 @@ REPOSITORY=${REPOSITORY_URL}:${VERSION}
 
 echo Building tag image $REPOSITORY
 
-docker build -t $REPOSITORY .
+docker build --platform linux/amd64 -t $REPOSITORY .
 
 if [[ ${SHOULD_PUSH_IMAGE} == true ]]
   then
