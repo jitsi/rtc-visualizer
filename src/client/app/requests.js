@@ -13,6 +13,8 @@ export const Urls = {
 
   File: name => `/files/${name}`,
 
+  JWTFile: (name, filesEndpoint) => `${filesEndpoint}/rtc-visualizer/files/${name}`,
+
   Render: name => `/?dumpId=${name}`,
 
   Download: name => `/download/${name}`
