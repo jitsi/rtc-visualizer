@@ -9,7 +9,7 @@ export const parseData = input => {
   lines.forEach(line => {
     if (line.length) {
       const data = JSON.parse(line)
-      const time = new Date(data.time || data[data.length - 1])
+      const time = new Date(data.time || data[3])
       delete data.time
 
       switch (data[0]) {

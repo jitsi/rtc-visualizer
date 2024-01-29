@@ -172,11 +172,18 @@ function createSpecCandidateTable (container, allGroupedStats) {
 function createContainers (connid, url) {
   let signalingState, iceConnectionState, connectionState, candidates
   const container = document.createElement('details')
-  container.open = true
+  container.open = false
   container.style.margin = '10px'
-
+  let innerText = '';
   let summary = document.createElement('summary')
-  summary.innerText = 'Connection:' + connid + ' URL: ' + url
+  if (connid !== 'null') {
+    innerText = 'Connection:' + connid// + ' URL: ' + url
+  } else {
+    innerText = 'Meeting events';
+  }
+
+  summary.innerText = innerText;
+
   container.appendChild(summary)
 
   if (connid !== 'null') {
@@ -228,9 +235,34 @@ function createContainers (connid, url) {
   return container
 }
 
+function convertTotalToRateSeries(timeSeries) {
+  return timeSeries.reduce(
+    (accumulator, currentValue) => {
+
+      const {prevValue} = accumulator;
+      accumulator.prevValue = currentValue;
+
+      if (!prevValue.length) {
+          return accumulator;
+      } 
+    
+      const [timestamp = 0, totalBytesSent = 0] = currentValue;
+      const [prevTimestamp = 0, prevTotalBytesSent = 0] = prevValue;
+
+      const sampleRateSeconds = (timestamp - prevTimestamp) / 1000;
+      const bitRate = (totalBytesSent - prevTotalBytesSent) * 8;
+      const bitRatePerSecond = Math.round(bitRate / sampleRateSeconds);
+
+      accumulator.bitRate.push([timestamp, bitRatePerSecond]);
+      return accumulator;
+    },
+    { bitRate: [], prevValue: []},
+  ).bitRate;
+}
+
 function processGUM (data) {
   const container = document.createElement('details')
-  container.open = true
+  container.open = false
   container.style.margin = '10px'
 
   const summary = document.createElement('summary')
@@ -440,23 +472,21 @@ function processConnections (connectionIds, data) {
     container.appendChild(chartContainer)
 
     const ignoredSeries = ['type', 'ssrc']
-    const hiddenSeries = [
-      'bytesReceived', 'bytesSent',
-      'headerBytesReceived', 'headerBytesSent',
-      'packetsReceived', 'packetsSent',
-      'qpSum', 'estimatedPlayoutTimestamp',
-      'framesEncoded', 'framesDecoded',
-      'lastPacketReceivedTimestamp', 'lastPacketSentTimestamp',
-      'remoteTimestamp',
-      'audioInputLevel', 'audioOutputLevel',
-      'totalSamplesDuration',
-      'totalSamplesReceived', 'jitterBufferEmittedCount',
-      // legacy
-      'googDecodingCTN', 'googDecodingCNG', 'googDecodingNormal',
-      'googDecodingPLCCNG', 'googDecodingCTSG', 'googDecodingMuted',
-      'googEchoCancellationEchoDelayStdDev',
-      'googCaptureStartNtpTimeMs'
+    const visibleSeries = [
+      'bytesReceivedInBits/S', 'bytesSentInBits/S',
+      'targetBitrate', 'packetsLost', 'jitter',
+      'availableOutgoingBitrate', 'roundTripTime'
     ]
+    const rateSeriesWhitelist = ['bytesSent', 'bytesReceived'];
+    
+    // Calculate bitrate per second for time series that contain cumulated values
+    // over time, time total bytes sent or total bytes received
+    Object.keys(series[reportname])
+      .filter(name => rateSeriesWhitelist.includes(name))
+      .map(name => {
+        const rateSeries = convertTotalToRateSeries(series[reportname][name]);
+        series[reportname][`${name}InBits/S`] = rateSeries;
+      })
 
     const traces = Object.keys(series[reportname])
       .filter(name => !ignoredSeries.includes(name))
@@ -467,11 +497,11 @@ function processConnections (connectionIds, data) {
         return {
           mode: 'lines+markers',
           name: name,
-          visible: hiddenSeries.includes(name) ? 'legendonly' : true,
+          visible: visibleSeries.includes(name) ? true: 'legendonly',
           x: data.map(d => new Date(d[0])),
           y: data.map(d => d[1])
         }
-      })
+      }) 
 
     // expand the graph when opening
     container.ontoggle = () => container.open && Plotly.react(chartContainer, traces)
@@ -503,7 +533,7 @@ export const clearStats = () => {
 
 export const showStats = data => {
   clearStats()
-  document.getElementById('userAgent').innerHTML = `<b>User Agent:</b> <span>${data.userAgent}</span>`
+  // TODO Add user agent support document.getElementById('userAgent').innerHTML = `<b>User Agent:</b> <span>${data.userAgent}</span>`
   processGUM(data.getUserMedia)
   window.setTimeout(processConnections, 0, Object.keys(data.peerConnections), data)
 }
