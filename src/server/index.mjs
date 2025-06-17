@@ -15,29 +15,34 @@ import jwtAuth from './jwt-auth.mjs'
 const { APP_PORT } = process.env
 
 const app = express()
+const router = express.Router()
 
 // use custom logger
 app.use(expressLog)
-app.use('/healthcheck', healthRoute)
+
+router.use('/healthcheck', healthRoute)
 
 // Config object needs to be available on all environments (JaaS, standalone)
-app.use('/rtc-visualizer/config', config)
-app.use('/meet-external/rtc-visualizer/config', config)
+router.use('/rtc-visualizer/config', config)
+router.use('/meet-external/rtc-visualizer/config', config)
 
 // use just jwt authentication for this path
-app.use('/rtc-visualizer/files', jwtAuth, filesRoutes)
-app.use('/rtc-visualizer', express.static(path.join(path.resolve(), 'public')))
+router.use('/rtc-visualizer/files', jwtAuth, filesRoutes)
+router.use('/rtc-visualizer', express.static(path.join(path.resolve(), 'public')))
 
 // serve static files from /public
-app.use(express.static(path.join(path.resolve(), 'public')))
+router.use(express.static(path.join(path.resolve(), 'public')))
 
 // use basic auth
-app.use(basicAuth)
+router.use(basicAuth)
 
-app.use('/files', filesRoutes)
-app.use('/search', searchRoutes)
-app.use('/download', downloadRoutes)
-app.use('/version', versionRoute)
+router.use('/files', filesRoutes)
+router.use('/search', searchRoutes)
+router.use('/download', downloadRoutes)
+router.use('/version', versionRoute)
+
+app.use('/', router)
+app.use('/rtcstats-view', router)
 
 app.listen(APP_PORT, () => {
   log.info('App started on port: %s', APP_PORT)

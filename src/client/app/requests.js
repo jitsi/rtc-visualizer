@@ -11,13 +11,13 @@ export const Urls = {
     return url
   },
 
-  File: name => `/files/${name}`,
+  File: name => `/rtcstats-view/files/${name}`,
 
   JWTFile: (name, filesEndpoint) => `${filesEndpoint}/rtc-visualizer/files/${name}`,
 
-  Render: name => `/?dumpId=${name}`,
+  Render: name => `/rtcstats-view/?dumpId=${name}`,
 
-  Download: name => `/download/${name}`
+  Download: name => `/rtcstats-view/download/${name}`
 }
 
 export const makeRequest = (

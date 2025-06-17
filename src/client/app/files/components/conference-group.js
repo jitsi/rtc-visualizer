@@ -50,7 +50,7 @@ const NonGroup = styled.div`
 
 `
 function getPermalink (group) {
-  return `${window.location.origin}/?meetingUniqueId=${group[0].sessionId}`
+  return `${window.location.origin}/rtcstats-view/?meetingUniqueId=${group[0].sessionId}`
 }
 
 export default ({ id, data }) => {
