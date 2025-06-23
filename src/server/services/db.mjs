@@ -3,12 +3,12 @@ import logger from '../logger.mjs'
 
 const {
   RTCSTATS_METADATA_TABLE,
-  ENDPOINT
+  RTCSTATS_DYNAMODB_ENDPOINT: endpoint
 } = process.env
 
 // used for working with local data
-if (ENDPOINT) {
-  dynamoose.aws.ddb.local(ENDPOINT)
+if (endpoint) {
+  dynamoose.aws.ddb.local(endpoint)
 }
 
 // dynamoose.logger.providers.add(console)
