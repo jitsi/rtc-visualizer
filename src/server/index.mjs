@@ -41,8 +41,11 @@ router.use('/search', searchRoutes)
 router.use('/download', downloadRoutes)
 router.use('/version', versionRoute)
 
+// The root path '/' allows for direct access (e.g., in local development).
+// The '/rtcstats-api' path is an alias required to serve the application
+// from a subpath when it's running behind an Nginx reverse proxy.
 app.use('/', router)
-app.use('/rtcstats-view', router)
+app.use('/rtcstats-api', router)
 
 app.listen(APP_PORT, () => {
   log.info('App started on port: %s', APP_PORT)

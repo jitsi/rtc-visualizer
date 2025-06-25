@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { formatDate } from '../../utils'
 import Row from './row'
 import SortOptions from './sort-options'
+import { BasePath } from '../../config/base-path'
 
 const Content = styled.div`
   display: flex
@@ -50,7 +51,7 @@ const NonGroup = styled.div`
 
 `
 function getPermalink (group) {
-  return `${window.location.origin}/rtcstats-view/?meetingUniqueId=${group[0].sessionId}`
+  return `${window.location.origin}${BasePath}/?meetingUniqueId=${group[0].sessionId}`
 }
 
 export default ({ id, data }) => {
