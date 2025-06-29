@@ -1,5 +1,4 @@
 import Actions from './actions-types'
-import { BasePath } from './base-path'
 
 export const setConfig = (config) => ({
   type: Actions.SetConfig,
@@ -9,7 +8,7 @@ export const setConfig = (config) => ({
 export const fetchConfig = () => {
   return async (dispatch) => {
     try {
-      const response = await fetch(`${BasePath}/meet-external/rtc-visualizer/config`)
+      const response = await fetch('/meet-external/rtc-visualizer/config')
       if (!response.ok) {
         throw new Error('Unable to fetch confiug data')
       }

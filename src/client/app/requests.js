@@ -1,5 +1,3 @@
-import { BasePath } from './config/base-path'
-
 export const Urls = {
   Search: params => {
     const url = new URL('search', window.location.href)
@@ -13,13 +11,18 @@ export const Urls = {
     return url
   },
 
-  File: name => `${BasePath}/files/${name}`,
+  File: name => new URL(`files/${name}`, window.location.href).href,
 
   JWTFile: (name, filesEndpoint) => `${filesEndpoint}/rtc-visualizer/files/${name}`,
 
-  Render: name => `${BasePath}/?dumpId=${name}`,
+  Render: name => {
+    const url = new URL(window.location.pathname, window.location.origin)
+    url.searchParams.set('dumpId', name)
 
-  Download: name => `${BasePath}/download/${name}`
+    return url.href
+  },
+
+  Download: name => new URL(`download/${name}`, window.location.href).href
 }
 
 export const makeRequest = (
