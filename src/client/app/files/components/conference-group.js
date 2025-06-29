@@ -50,7 +50,9 @@ const NonGroup = styled.div`
 
 `
 function getPermalink (group) {
-  return `${window.location.origin}/?meetingUniqueId=${group[0].sessionId}`
+  const url = new URL(window.location.pathname, window.location.origin)
+  url.searchParams.set('meetingUniqueId', group[0].sessionId)
+  return url.href
 }
 
 export default ({ id, data }) => {

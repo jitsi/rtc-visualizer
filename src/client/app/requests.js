@@ -11,13 +11,18 @@ export const Urls = {
     return url
   },
 
-  File: name => `/files/${name}`,
+  File: name => new URL(`files/${name}`, window.location.href).href,
 
   JWTFile: (name, filesEndpoint) => `${filesEndpoint}/rtc-visualizer/files/${name}`,
 
-  Render: name => `/?dumpId=${name}`,
+  Render: name => {
+    const url = new URL(window.location.pathname, window.location.origin)
+    url.searchParams.set('dumpId', name)
 
-  Download: name => `/download/${name}`
+    return url.href
+  },
+
+  Download: name => new URL(`download/${name}`, window.location.href).href
 }
 
 export const makeRequest = (
