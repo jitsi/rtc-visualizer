@@ -24,7 +24,6 @@ router.use('/healthcheck', healthRoute)
 
 // Config object needs to be available on all environments (JaaS, standalone)
 router.use('/rtc-visualizer/config', config)
-router.use('/meet-external/rtc-visualizer/config', config)
 
 // use just jwt authentication for this path
 router.use('/rtc-visualizer/files', jwtAuth, filesRoutes)
