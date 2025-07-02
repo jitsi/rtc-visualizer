@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import { formatDate } from '../../utils'
 import Row from './row'
 import SortOptions from './sort-options'
+import { Urls } from '../../requests'
 
 const Content = styled.div`
   display: flex
@@ -49,11 +50,6 @@ const Emph = styled.div`
 const NonGroup = styled.div`
 
 `
-function getPermalink (group) {
-  const url = new URL(window.location.pathname, window.location.origin)
-  url.searchParams.set('meetingUniqueId', group[0].sessionId)
-  return url.href
-}
 
 export default ({ id, data }) => {
   const { group, startDate, endDate, participants } = data
@@ -67,7 +63,7 @@ export default ({ id, data }) => {
             ? <NonGroup><Emph>{`Other ${group.length} participants`}</Emph></NonGroup>
             : (
               <>
-                <div><Emph>Permalink: </Emph><a href={getPermalink(group)}>{getPermalink(group)}</a></div>
+                <div><Emph>Permalink: </Emph><a href={Urls.Permalink(group)}>{Urls.Permalink(group)}</a></div>
                 <div><Emph>Start Time:</Emph> {formatDate(startDate)}</div>
                 <div><Emph>End Time:</Emph> {formatDate(endDate)}</div>
                 <div><Emph>Participants:</Emph> {participants}</div>

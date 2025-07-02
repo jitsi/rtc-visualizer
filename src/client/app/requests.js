@@ -1,28 +1,17 @@
+import { buildRelativeUrl } from './utils'
+
 export const Urls = {
-  Search: params => {
-    const url = new URL('search', window.location.href)
+  Search: params => buildRelativeUrl('search', params),
 
-    Object.entries(params).forEach(([k, v]) => {
-      if (v) {
-        url.searchParams.set(k, v)
-      }
-    })
-
-    return url
-  },
-
-  File: name => new URL(`files/${name}`, window.location.href).href,
+  File: name => buildRelativeUrl(`files/${name}`).href,
 
   JWTFile: (name, filesEndpoint) => `${filesEndpoint}/rtc-visualizer/files/${name}`,
 
-  Render: name => {
-    const url = new URL(window.location.pathname, window.location.origin)
-    url.searchParams.set('dumpId', name)
+  Render: name => buildRelativeUrl('', { dumpId: name }).href,
 
-    return url.href
-  },
+  Download: name => buildRelativeUrl(`download/${name}`).href,
 
-  Download: name => new URL(`download/${name}`, window.location.href).href
+  Permalink: group => buildRelativeUrl('', { meetingUniqueId: group[0].sessionId }).href
 }
 
 export const makeRequest = (
