@@ -12,7 +12,12 @@ import versionRoute from './routes/version.mjs'
 import basicAuth from './basic-auth.mjs'
 import jwtAuth from './jwt-auth.mjs'
 
-const { APP_PORT } = process.env
+const {
+  APP_PORT,
+  RTCSTATS_JWT_PUBLIC_KEY,
+  RTCSTATS_JWT_EGHT_PUBLIC_KEY,
+  RTCSTATS_FILES_ENDPOINT
+} = process.env
 
 const app = express()
 const router = express.Router()
@@ -22,12 +27,18 @@ app.use(expressLog)
 
 router.use('/healthcheck', healthRoute)
 
-// Config object needs to be available on all environments (JaaS, standalone)
-router.use('/rtc-visualizer/config', config)
+// This config endpoint is specific to a JaaS deployment.
+// The presence of the RTCSTATS_FILES_ENDPOINT env variable indicates a JaaS environment.
+if (RTCSTATS_FILES_ENDPOINT) {
+  router.use('/rtc-visualizer/config', config)
+}
 
-// use just jwt authentication for this path
-router.use('/rtc-visualizer/files', jwtAuth, filesRoutes)
-router.use('/rtc-visualizer', express.static(path.join(path.resolve(), 'public')))
+// Enable JWT-protected routes only if a JWT public key is provided in the environment.
+// This includes the protected file endpoint and its associated static assets.
+if (RTCSTATS_JWT_PUBLIC_KEY || RTCSTATS_JWT_EGHT_PUBLIC_KEY) {
+  router.use('/rtc-visualizer/files', jwtAuth, filesRoutes)
+  router.use('/rtc-visualizer', express.static(path.join(path.resolve(), 'public')))
+}
 
 // serve static files from /public
 router.use(express.static(path.join(path.resolve(), 'public')))

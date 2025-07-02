@@ -5,7 +5,7 @@ export const Urls = {
 
   File: name => buildRelativeUrl(`files/${name}`).href,
 
-  JWTFile: (name, filesEndpoint) => `${filesEndpoint}/rtc-visualizer/files/${name}`,
+  JWTFile: name => buildRelativeUrl(`rtc-visualizer/files/${name}`).href,
 
   Render: name => buildRelativeUrl('', { dumpId: name }).href,
 
