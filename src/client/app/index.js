@@ -8,8 +8,8 @@ export default () => {
     <div>
       {
         (new URLSearchParams(window.location.search).has('dumpId'))
-        ? <Render />
-        : <Search />
+          ? <Render />
+          : <Search />
       }
     </div>
   )
