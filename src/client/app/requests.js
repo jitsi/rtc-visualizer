@@ -11,7 +11,7 @@ export const Urls = {
 
   Download: name => buildRelativeUrl(`download/${name}`).href,
 
-  Permalink: group => buildRelativeUrl('', { meetingUniqueId: group[0].sessionId }).href
+  Permalink: sessionId => buildRelativeUrl('', { meetingUniqueId: sessionId }).href
 }
 
 export const makeRequest = (

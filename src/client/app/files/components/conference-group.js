@@ -54,6 +54,7 @@ const NonGroup = styled.div`
 export default ({ id, data }) => {
   const { group, startDate, endDate, participants } = data
   const isNonGrouped = id === 'other'
+  const permalink = Urls.Permalink(group[0].sessionId)
 
   return (
     <Details>
@@ -63,7 +64,7 @@ export default ({ id, data }) => {
             ? <NonGroup><Emph>{`Other ${group.length} participants`}</Emph></NonGroup>
             : (
               <>
-                <div><Emph>Permalink: </Emph><a href={Urls.Permalink(group)}>{Urls.Permalink(group)}</a></div>
+                <div><Emph>Permalink: </Emph><a href={permalink}>{permalink}</a></div>
                 <div><Emph>Start Time:</Emph> {formatDate(startDate)}</div>
                 <div><Emph>End Time:</Emph> {formatDate(endDate)}</div>
                 <div><Emph>Participants:</Emph> {participants}</div>
