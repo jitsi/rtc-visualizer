@@ -12,32 +12,51 @@ import versionRoute from './routes/version.mjs'
 import basicAuth from './basic-auth.mjs'
 import jwtAuth from './jwt-auth.mjs'
 
-const { APP_PORT } = process.env
+const {
+  APP_PORT,
+  RTCSTATS_JWT_PUBLIC_KEY,
+  RTCSTATS_JWT_EGHT_PUBLIC_KEY,
+  RTCSTATS_FILES_ENDPOINT
+} = process.env
 
 const app = express()
+const router = express.Router()
 
 // use custom logger
 app.use(expressLog)
-app.use('/healthcheck', healthRoute)
 
-// Config object needs to be available on all environments (JaaS, standalone)
-app.use('/rtc-visualizer/config', config)
-app.use('/meet-external/rtc-visualizer/config', config)
+router.use('/healthcheck', healthRoute)
 
-// use just jwt authentication for this path
-app.use('/rtc-visualizer/files', jwtAuth, filesRoutes)
-app.use('/rtc-visualizer', express.static(path.join(path.resolve(), 'public')))
+// This config endpoint is specific to a JaaS deployment.
+// The presence of the RTCSTATS_FILES_ENDPOINT env variable indicates a JaaS environment.
+if (RTCSTATS_FILES_ENDPOINT) {
+  router.use('/rtc-visualizer/config', config)
+}
+
+// Enable JWT-protected routes only if a JWT public key is provided in the environment.
+// This includes the protected file endpoint and its associated static assets.
+if (RTCSTATS_JWT_PUBLIC_KEY || RTCSTATS_JWT_EGHT_PUBLIC_KEY) {
+  router.use('/rtc-visualizer/files', jwtAuth, filesRoutes)
+  router.use('/rtc-visualizer', express.static(path.join(path.resolve(), 'public')))
+}
 
 // serve static files from /public
-app.use(express.static(path.join(path.resolve(), 'public')))
+router.use(express.static(path.join(path.resolve(), 'public')))
 
 // use basic auth
-app.use(basicAuth)
+router.use(basicAuth)
 
-app.use('/files', filesRoutes)
-app.use('/search', searchRoutes)
-app.use('/download', downloadRoutes)
-app.use('/version', versionRoute)
+router.use('/files', filesRoutes)
+router.use('/search', searchRoutes)
+router.use('/download', downloadRoutes)
+router.use('/version', versionRoute)
+
+// This server is designed to be path-agnostic. The public-facing subpath
+// is expected to be handled by a reverse proxy.
+// TODO: If any server-side logic ever needs to generate absolute URLs,
+// the public base path should be passed in via an environment variable
+// (e.g., process.env.PUBLIC_BASE_PATH) rather than hardcoding it here.
+app.use('/', router)
 
 app.listen(APP_PORT, () => {
   log.info('App started on port: %s', APP_PORT)

@@ -17,10 +17,9 @@ export const fetchFileBasicAuth = name => fetchFile(name, false)
 
 export const fetchFileJWTAuth = name => fetchFile(name, true)
 
-const fetchFile = (name, jwtAuthorization) => async (dispatch, getState) => {
-  const { config: { filesEndpoint = '' } = {} } = getState()
-
-  const fileUrl = jwtAuthorization ? Urls.JWTFile(name, filesEndpoint) : Urls.File(name)
+const fetchFile = (name, jwtAuthorization) => async (dispatch) => {
+  // TODO: JWTFile URL needs a JWT in the header
+  const fileUrl = jwtAuthorization ? Urls.JWTFile(name) : Urls.File(name)
 
   dispatch({
     type: Actions.FetchFileStart,
