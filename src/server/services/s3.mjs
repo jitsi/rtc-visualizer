@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk'
 import log from '../logger.mjs'
+import { FileStorageAdapter } from './file-storage-adapter.mjs'
 
 const {
   AWS_REGION: region,
@@ -11,37 +12,59 @@ const config = {
   region
 }
 
-AWS.config.update(config)
+export class S3Adapter extends FileStorageAdapter {
+  async connect () {
+    AWS.config.update(config)
 
-// Use endpoint for local S3 (e.g., MinIO or LocalStack).
-// Falls back to default AWS S3 if no endpoint is specified.
-const s3 = new AWS.S3(endpoint ? {endpoint} : {})
+    // Use endpoint for local S3 (e.g., MinIO or LocalStack).
+    // Falls back to default AWS S3 if no endpoint is specified.
+    this._s3 = new AWS.S3(endpoint ? { endpoint } : {})
 
-export const fileExists = async Key => {
-  const obj = { Bucket: RTCSTATS_S3_BUCKET, Key }
+    log.info('S3 Adapter configured.')
 
-  try {
-    const code = await s3.headObject(obj).promise()
-    log.info('File exists in bucket', { obj, code })
-
-    return true
-  } catch (err) {
-    log.error('Error finding the file in bucket', { obj, err })
-
-    return false
+    return Promise.resolve()
   }
-}
 
-export const getFileStream = Key => {
-  const obj = { Bucket: RTCSTATS_S3_BUCKET, Key }
-  const stream = s3.getObject({ Bucket: RTCSTATS_S3_BUCKET, Key }).createReadStream()
+  async fileExists (key) {
+    if (!this._s3) {
+      throw new Error('Connection not established. Call connect() first.')
+    }
 
-  log.info('Start streaming file %s', Key)
+    const obj = { Bucket: RTCSTATS_S3_BUCKET, Key: key }
 
-  // errors on service
-  stream.on('error', err => {
-    log.error('Error streaming file', { obj, err })
-  })
+    try {
+      const code = await this._s3.headObject(obj).promise()
+      log.info('File exists in S3', { obj, code })
 
-  return stream
+      return true
+    } catch (err) {
+      if (err.code === 'NotFound') {
+        log.warn('File does not exist in S3', { obj, err })
+
+        return false
+      }
+
+      log.error('Error finding the file in S3', { obj, err })
+
+      return false
+    }
+  }
+
+  getFileStream (key) {
+    if (!this._s3) {
+      throw new Error('Connection not established. Call connect() first.')
+    }
+
+    const obj = { Bucket: RTCSTATS_S3_BUCKET, Key: key }
+    const stream = this._s3.getObject(obj).createReadStream()
+
+    log.info('Start streaming file %s', key)
+
+    // errors on service
+    stream.on('error', err => {
+      log.error('Error streaming file', { obj, err })
+    })
+
+    return stream
+  }
 }
