@@ -3,7 +3,7 @@ import logger from '../logger.mjs'
 import { DatabaseAdapter } from './database-adapter.mjs'
 
 const {
-  MONGODB_URI,
+  RTCSTATS_MONGODB_URI,
   RTCSTATS_MONGODB_NAME,
   RTCSTATS_METADATA_COLLECTION
 } = process.env
@@ -31,7 +31,7 @@ export class MongoDBAdapter extends DatabaseAdapter {
   }
 
   async connect () {
-    await mongoose.connect(MONGODB_URI, { dbName: RTCSTATS_MONGODB_NAME })
+    await mongoose.connect(RTCSTATS_MONGODB_URI, { dbName: RTCSTATS_MONGODB_NAME })
     console.log(`Successfully connected to MongoDB database: ${RTCSTATS_MONGODB_NAME}`)
   }
 
