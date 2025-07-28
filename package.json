@@ -78,7 +78,7 @@
     "express-basic-auth": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.17.0",
-    "mongoose": "^8.16.3",
+    "mongoose": "^8.16.5",
     "morgan": "^1.10.0",
     "plotly.js-dist": "^2.22.0",
     "react": "^17.0.2",
