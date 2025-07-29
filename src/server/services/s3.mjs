@@ -13,7 +13,9 @@ const config = {
 }
 
 export class S3Adapter extends FileStorageAdapter {
-  async connect () {
+  constructor () {
+    super()
+
     AWS.config.update(config)
 
     // Use endpoint for local S3 (e.g., MinIO or LocalStack).
@@ -21,15 +23,9 @@ export class S3Adapter extends FileStorageAdapter {
     this._s3 = new AWS.S3(endpoint ? { endpoint } : {})
 
     log.info('S3 Adapter configured.')
-
-    return Promise.resolve()
   }
 
   async fileExists (key) {
-    if (!this._s3) {
-      throw new Error('Connection not established. Call connect() first.')
-    }
-
     const obj = { Bucket: RTCSTATS_S3_BUCKET, Key: key }
 
     try {
@@ -51,10 +47,6 @@ export class S3Adapter extends FileStorageAdapter {
   }
 
   getFileStream (key) {
-    if (!this._s3) {
-      throw new Error('Connection not established. Call connect() first.')
-    }
-
     const obj = { Bucket: RTCSTATS_S3_BUCKET, Key: key }
     const stream = this._s3.getObject(obj).createReadStream()
 

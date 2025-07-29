@@ -32,7 +32,6 @@ export async function setupServices () {
       metadataManager = new DynamoDBAdapter()
       await metadataManager.connect()
       fileStorageManager = new S3Adapter()
-      await fileStorageManager.connect()
 
       break
 

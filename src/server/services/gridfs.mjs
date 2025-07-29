@@ -14,19 +14,10 @@ export class GridFSAdapter extends FileStorageAdapter {
       throw new Error('A native Db object is required for GridFSAdapter.')
     }
     this._bucket = new GridFSBucket(db, { bucketName: RTCSTATS_GRIDFS_BUCKET })
-    this._connected = false
-  }
-
-  async connect () {
     this._connected = true
-    return Promise.resolve()
   }
 
   async fileExists (key) {
-    if (!this._connected) {
-      throw new Error('Connection not established. Call connect() first.')
-    }
-
     const params = { filename: key }
 
     try {
@@ -49,10 +40,6 @@ export class GridFSAdapter extends FileStorageAdapter {
   }
 
   getFileStream (key) {
-    if (!this._connected) {
-      throw new Error('Connection not established. Call connect() first.')
-    }
-
     const stream = this._bucket.openDownloadStreamByName(key)
 
     log.info('Start streaming from GridFS for filename %s', key)

@@ -1,8 +1,4 @@
 export class FileStorageAdapter {
-  async connect () {
-    throw new Error('connect() must be implemented by a subclass.')
-  }
-
   /**
    * @param {string} key
    * @returns {Promise<boolean>}
