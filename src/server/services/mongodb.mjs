@@ -32,7 +32,7 @@ export class MongoDBAdapter extends DatabaseAdapter {
 
   async connect () {
     await mongoose.connect(RTCSTATS_MONGODB_URI, { dbName: RTCSTATS_MONGODB_NAME })
-    console.log(`Successfully connected to MongoDB database: ${RTCSTATS_MONGODB_NAME}`)
+    logger.info(`Successfully connected to MongoDB database: ${RTCSTATS_MONGODB_NAME}`)
   }
 
   get nativeDb () {

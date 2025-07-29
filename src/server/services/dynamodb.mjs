@@ -72,7 +72,7 @@ export class DynamoDBAdapter extends DatabaseAdapter {
     if (endpoint) {
       dynamoose.aws.ddb.local(endpoint)
     }
-    console.log('DynamoDB connection configured.')
+    logger.info('DynamoDB connection configured.')
 
     return Promise.resolve()
   }
