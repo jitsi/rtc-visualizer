@@ -5,7 +5,7 @@
   "repository": "https://github.com/8x8Cloud/rtc-visualizer",
   "author": "8x8",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "NODE_OPTIONS=--experimental-vm-modules NODE_ENV=production jest",
     "start": "npm run build-client && npm run start-server",
     "deploy": "./scripts/predeploy.sh && ./scripts/deploy.sh true",
     "create-local-db": "node ./scripts/create-db.mjs",
