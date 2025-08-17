@@ -14,7 +14,6 @@ export class GridFSAdapter extends FileStorageAdapter {
       throw new Error('A native Db object is required for GridFSAdapter.')
     }
     this._bucket = new GridFSBucket(db, { bucketName: RTCSTATS_GRIDFS_BUCKET })
-    this._connected = true
   }
 
   async fileExists (key) {
