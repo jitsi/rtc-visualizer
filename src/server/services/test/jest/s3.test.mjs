@@ -1,5 +1,4 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
-import { S3Adapter } from '../../s3.mjs'
 import AWS, {
   mockHeadObject,
   mockGetObject,
@@ -7,8 +6,13 @@ import AWS, {
   mockStream
 } from '../mock/aws-sdk.mjs'
 
+jest.unstable_mockModule('aws-sdk', () => import('../mock/aws-sdk.mjs'))
+
 describe('S3Adapter', () => {
-  beforeEach(() => {
+  let S3Adapter
+
+  beforeEach(async () => {
+    S3Adapter = (await import('../../s3.mjs')).S3Adapter
     jest.clearAllMocks()
   })
 

@@ -1,5 +1,4 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
-import { GridFSAdapter } from '../../gridfs.mjs'
 import {
   GridFSBucket,
   mockFind,
@@ -8,10 +7,14 @@ import {
   mockStream
 } from '../mock/mongodb.mjs'
 
+jest.unstable_mockModule('mongodb', () => import('../mock/mongodb.mjs'))
+
 describe('GridFSAdapter', () => {
+  let GridFSAdapter
   const mockDb = { name: 'mock-db' }
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    GridFSAdapter = (await import('../../gridfs.mjs')).GridFSAdapter
     jest.clearAllMocks()
   })
 

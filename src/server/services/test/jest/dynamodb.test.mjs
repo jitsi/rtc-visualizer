@@ -1,6 +1,5 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
 import { basicTestData, boundaryTestData } from '../data/database.mjs'
-import { DynamoDBAdapter } from '../../dynamodb.mjs'
 import dynamoose, {
   mockExec,
   mockQuery,
@@ -11,8 +10,14 @@ import dynamoose, {
   mockBetween
 } from '../mock/dynamoose.mjs'
 
+jest.unstable_mockModule('dynamoose', () => import('../mock/dynamoose.mjs'))
+
 describe('DynamoDBAdapter - Unit Test with Shared Mocks', () => {
-  beforeEach(() => {
+  let DynamoDBAdapter
+
+  beforeEach(async () => {
+    DynamoDBAdapter = (await import('../../dynamodb.mjs')).DynamoDBAdapter
+
     jest.clearAllMocks()
   })
 

@@ -1,10 +1,14 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
 import { basicTestData, boundaryTestData } from '../data/database.mjs'
-import { MongoDBAdapter } from '../../mongodb.mjs'
 import { mockFind } from '../mock/mongoose.mjs'
 
+jest.unstable_mockModule('mongoose', () => import('../mock/mongoose.mjs'))
+
 describe('MongoDBAdapter - Unit Test with Shared Mocks', () => {
-  beforeEach(() => {
+  let MongoDBAdapter
+
+  beforeEach(async () => {
+    MongoDBAdapter = (await import('../../mongodb.mjs')).MongoDBAdapter
     jest.clearAllMocks()
   })
 
