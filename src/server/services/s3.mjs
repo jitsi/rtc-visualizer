@@ -1,5 +1,6 @@
 import AWS from 'aws-sdk'
 import log from '../logger.mjs'
+import { FileStorageAdapter } from './file-storage-adapter.mjs'
 
 const {
   AWS_REGION: region,
@@ -11,37 +12,51 @@ const config = {
   region
 }
 
-AWS.config.update(config)
+export class S3Adapter extends FileStorageAdapter {
+  constructor () {
+    super()
 
-// Use endpoint for local S3 (e.g., MinIO or LocalStack).
-// Falls back to default AWS S3 if no endpoint is specified.
-const s3 = new AWS.S3(endpoint ? {endpoint} : {})
+    AWS.config.update(config)
 
-export const fileExists = async Key => {
-  const obj = { Bucket: RTCSTATS_S3_BUCKET, Key }
+    // Use endpoint for local S3 (e.g., MinIO or LocalStack).
+    // Falls back to default AWS S3 if no endpoint is specified.
+    this._s3 = new AWS.S3(endpoint ? { endpoint } : {})
 
-  try {
-    const code = await s3.headObject(obj).promise()
-    log.info('File exists in bucket', { obj, code })
-
-    return true
-  } catch (err) {
-    log.error('Error finding the file in bucket', { obj, err })
-
-    return false
+    log.info('S3 Adapter configured.')
   }
-}
 
-export const getFileStream = Key => {
-  const obj = { Bucket: RTCSTATS_S3_BUCKET, Key }
-  const stream = s3.getObject({ Bucket: RTCSTATS_S3_BUCKET, Key }).createReadStream()
+  async fileExists (key) {
+    const obj = { Bucket: RTCSTATS_S3_BUCKET, Key: key }
 
-  log.info('Start streaming file %s', Key)
+    try {
+      const code = await this._s3.headObject(obj).promise()
+      log.info('File exists in S3', { obj, code })
 
-  // errors on service
-  stream.on('error', err => {
-    log.error('Error streaming file', { obj, err })
-  })
+      return true
+    } catch (err) {
+      if (err.code === 'NotFound') {
+        log.warn('File does not exist in S3', { obj, err })
 
-  return stream
+        return false
+      }
+
+      log.error('Error finding the file in S3', { obj, err })
+
+      return false
+    }
+  }
+
+  getFileStream (key) {
+    const obj = { Bucket: RTCSTATS_S3_BUCKET, Key: key }
+    const stream = this._s3.getObject(obj).createReadStream()
+
+    log.info('Start streaming file %s', key)
+
+    // errors on service
+    stream.on('error', err => {
+      log.error('Error streaming file', { obj, err })
+    })
+
+    return stream
+  }
 }

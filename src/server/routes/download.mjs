@@ -1,28 +1,33 @@
 import express from 'express'
 import log from '../logger.mjs'
-import { getFileStream, fileExists } from '../services/s3.mjs'
 
-const router = express.Router()
+/**
+ * @param {FileStorageAdapter}
+ * @returns {express.Router}
+ */
+export function createDownloadRoutes (fileStorageManager) {
+  const router = express.Router()
 
-router.get('/:fileName', async (req, res) => {
-  const { params: { fileName } } = req
+  router.get('/:fileName', async (req, res) => {
+    const { params: { fileName } } = req
 
-  const canStream = await fileExists(fileName)
+    const canStream = await fileStorageManager.fileExists(fileName)
 
-  if (canStream) {
-    const stream = getFileStream(fileName)
+    if (canStream) {
+      const stream = fileStorageManager.getFileStream(fileName)
 
-    return stream.pipe(res)
-      .on('close', () => {
-        log.info('File downloaded %s', fileName)
-      })
-      // errors while writing data
-      .on('error', (err) => {
-        log.error('Error downloading file', { fileName, err })
-      })
-  }
+      return stream.pipe(res)
+        .on('close', () => {
+          log.info('File downloaded %s', fileName)
+        })
+        // errors while writing data
+        .on('error', (err) => {
+          log.error('Error downloading file', { fileName, err })
+        })
+    }
 
-  return res.status(404).end()
-})
+    return res.status(404).end()
+  })
 
-export default router
+  return router
+}
