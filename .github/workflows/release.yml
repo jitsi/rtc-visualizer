@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
       - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610  # v3
         with:
-          node-version: '16'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
       - run: npm version ${{ github.event.inputs.version }} --no-commit-hooks --no-git-tag-version
       - run: npm install
@@ -41,6 +41,11 @@ jobs:
       - name: docker release
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         with:
+          # Build from the checked-out workspace. Without this the action uses the
+          # Git context at the ref that started the workflow, which does not contain
+          # the version bump committed above, so package.json in the image keeps the
+          # previous version (same fix as jitsi/rtcstats-server#133).
+          context: .
           push: true
           tags: |
             jitsi/rtcstats-visualizer:${{ github.event.inputs.version }}
