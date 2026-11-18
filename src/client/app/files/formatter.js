@@ -110,6 +110,12 @@ function decompress (baseStats, newStats) {
   return baseStats
 }
 
+// Gets a report by an id that is a field value from the dump. Only an own entry counts, because a
+// name such as `__proto__` would resolve to a built-in.
+function getReport (reports, id) {
+  return Object.prototype.hasOwnProperty.call(reports, id) ? reports[id] : undefined
+}
+
 // using shiftwidth=2 since reformating all the adapter code...
 function mangle (stats) {
   // Mangle chrome stats to spec stats. Just chrome stats.
@@ -362,7 +368,7 @@ function mangle (stats) {
         break
       case 'googComponent':
         // create a new report since we don't carry over all fields.
-        other = standardReport[report.selectedCandidatePairId]
+        other = getReport(standardReport, report.selectedCandidatePairId)
         newId = 'transport_' + report.id
         standardReport[newId] = {
           type: 'transport',
@@ -525,7 +531,7 @@ function mangle (stats) {
     const report = standardReport[id]
     if (report.type === 'transprort') {
       // RTCTransport has a pointer to the selectedCandidatePair...
-      let other = standardReport[report.selectedCandidatePairId]
+      let other = getReport(standardReport, report.selectedCandidatePairId)
       if (other) {
         other.transportId = report.id
       }

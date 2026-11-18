@@ -77,6 +77,22 @@ describe('parseData', () => {
     expect(Object.keys(value)).toEqual(['c', 'transport_c'])
   })
 
+  it('ignores a candidate pair id of a legacy report that is the name of a built-in property', () => {
+    const client = parse([
+      '["getStats","PC_0",{"c":{"type":"googComponent","id":"c","selectedCandidatePairId":"__proto__"},' +
+        '"t":{"type":"transprort","id":"t","selectedCandidatePairId":"__proto__"},' +
+        '"u":{"type":"transprort","id":"u","selectedCandidatePairId":"constructor"},' +
+        '"v":{"type":"transprort","id":"v","selectedCandidatePairId":"toString"},' +
+        '"p":{"type":"googCandidatePair","id":"p"},' +
+        '"w":{"type":"transprort","id":"w","selectedCandidatePairId":"p"}},1]'
+    ])
+    const value = client.peerConnections.PC_0[0].value
+
+    expect(addedNames()).toEqual([])
+    expect(Object.keys(value)).toEqual(['c', 't', 'u', 'v', 'p', 'w', 'transport_c'])
+    expect(value.p.transportId).toBe('w')
+  })
+
   it('removes a stat name that is the name of a built-in property', () => {
     const client = parse([
       '["getstats","PC_0",{"a":{"type":"x","bytes":1,"constructor":2,"toString":3,"timestamp":0},"timestamp":1},1]',
