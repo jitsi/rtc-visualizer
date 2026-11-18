@@ -1,3 +1,5 @@
+import { isBuiltinPropertyName } from '../utils'
+
 export const parseData = input => {
   const baseStats = {}
   const lines = input.split('\n')
@@ -27,6 +29,10 @@ export const parseData = input => {
 
           break
         default:
+          // The peer connection id is the key in client.peerConnections and in baseStats.
+          if (isBuiltinPropertyName(data[1])) {
+            break
+          }
           if (!client.peerConnections[data[1]]) {
             client.peerConnections[data[1]] = []
             baseStats[data[1]] = {}
@@ -39,6 +45,7 @@ export const parseData = input => {
           if (data[0] === 'getStats' || data[0] === 'getstats') {
             data[2] = mangle(data[2])
             data[0] = 'getStats'
+            removeBuiltinPropertyNames(data[2])
           }
           client.peerConnections[data[1]].push({
             time: time,
@@ -53,10 +60,24 @@ export const parseData = input => {
   return client
 }
 
+// The code that shows the stats uses each report id as an object key. Remove the reports with
+// an id that would resolve to a built-in property.
+function removeBuiltinPropertyNames (stats) {
+  Object.keys(stats).forEach(function (id) {
+    if (isBuiltinPropertyName(id)) {
+      delete stats[id]
+    }
+  })
+}
+
 function decompress (baseStats, newStats) {
   const timestamp = newStats.timestamp
   delete newStats.timestamp
   Object.keys(newStats).forEach(function (id) {
+    // `baseStats[id]` would be the built-in and not a report.
+    if (isBuiltinPropertyName(id)) {
+      return
+    }
     if (!baseStats[id]) {
       if (newStats[id].timestamp === 0) {
         newStats[id].timestamp = timestamp
