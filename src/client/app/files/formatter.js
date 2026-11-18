@@ -60,12 +60,21 @@ export const parseData = input => {
   return client
 }
 
-// The code that shows the stats uses each report id as an object key. Remove the reports with
-// an id that would resolve to a built-in property.
+// The code that shows the stats (`series` in raw/legacy.js) uses each report id and each stat name
+// as an object key. Remove the own keys that would resolve to a built-in property.
 function removeBuiltinPropertyNames (stats) {
   Object.keys(stats).forEach(function (id) {
     if (isBuiltinPropertyName(id)) {
       delete stats[id]
+      return
+    }
+    const report = stats[id]
+    if (report && typeof report === 'object') {
+      Object.keys(report).forEach(function (name) {
+        if (isBuiltinPropertyName(name)) {
+          delete report[name]
+        }
+      })
     }
   })
 }
@@ -91,6 +100,9 @@ function decompress (baseStats, newStats) {
         report.timestamp = new Date(baseStats[id].timestamp).getTime()
       }
       Object.keys(report).forEach(function (name) {
+        if (isBuiltinPropertyName(name)) {
+          return
+        }
         baseStats[id][name] = report[name]
       })
     }
@@ -117,6 +129,11 @@ function mangle (stats) {
       stats[id].id = id // backfill, might have been removed by client.
     }
     const standardStats = stats[id]
+
+    // The id field becomes a key of standardReport.
+    if (isBuiltinPropertyName(standardStats.id)) {
+      return
+    }
 
     // Step 1: translate to standard types and attribute names.
     switch (standardStats.type) {
