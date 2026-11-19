@@ -1,3 +1,5 @@
+import { isBuiltinPropertyName } from '../utils'
+
 export const parseData = input => {
   const baseStats = {}
   const lines = input.split('\n')
@@ -27,6 +29,10 @@ export const parseData = input => {
 
           break
         default:
+          // The peer connection id is the key in client.peerConnections and in baseStats.
+          if (isBuiltinPropertyName(data[1])) {
+            break
+          }
           if (!client.peerConnections[data[1]]) {
             client.peerConnections[data[1]] = []
             baseStats[data[1]] = {}
@@ -39,6 +45,7 @@ export const parseData = input => {
           if (data[0] === 'getStats' || data[0] === 'getstats') {
             data[2] = mangle(data[2])
             data[0] = 'getStats'
+            removeBuiltinPropertyNames(data[2])
           }
           client.peerConnections[data[1]].push({
             time: time,
@@ -53,10 +60,33 @@ export const parseData = input => {
   return client
 }
 
+// The code that shows the stats (`series` in raw/legacy.js) uses each report id and each stat name
+// as an object key. Remove the own keys that would resolve to a built-in property.
+function removeBuiltinPropertyNames (stats) {
+  Object.keys(stats).forEach(function (id) {
+    if (isBuiltinPropertyName(id)) {
+      delete stats[id]
+      return
+    }
+    const report = stats[id]
+    if (report && typeof report === 'object') {
+      Object.keys(report).forEach(function (name) {
+        if (isBuiltinPropertyName(name)) {
+          delete report[name]
+        }
+      })
+    }
+  })
+}
+
 function decompress (baseStats, newStats) {
   const timestamp = newStats.timestamp
   delete newStats.timestamp
   Object.keys(newStats).forEach(function (id) {
+    // `baseStats[id]` would be the built-in and not a report.
+    if (isBuiltinPropertyName(id)) {
+      return
+    }
     if (!baseStats[id]) {
       if (newStats[id].timestamp === 0) {
         newStats[id].timestamp = timestamp
@@ -70,11 +100,20 @@ function decompress (baseStats, newStats) {
         report.timestamp = new Date(baseStats[id].timestamp).getTime()
       }
       Object.keys(report).forEach(function (name) {
+        if (isBuiltinPropertyName(name)) {
+          return
+        }
         baseStats[id][name] = report[name]
       })
     }
   })
   return baseStats
+}
+
+// Gets a report by an id that is a field value from the dump. Only an own entry counts, because a
+// name such as `__proto__` would resolve to a built-in.
+function getReport (reports, id) {
+  return Object.prototype.hasOwnProperty.call(reports, id) ? reports[id] : undefined
 }
 
 // using shiftwidth=2 since reformating all the adapter code...
@@ -96,6 +135,11 @@ function mangle (stats) {
       stats[id].id = id // backfill, might have been removed by client.
     }
     const standardStats = stats[id]
+
+    // The id field becomes a key of standardReport.
+    if (isBuiltinPropertyName(standardStats.id)) {
+      return
+    }
 
     // Step 1: translate to standard types and attribute names.
     switch (standardStats.type) {
@@ -324,7 +368,7 @@ function mangle (stats) {
         break
       case 'googComponent':
         // create a new report since we don't carry over all fields.
-        other = standardReport[report.selectedCandidatePairId]
+        other = getReport(standardReport, report.selectedCandidatePairId)
         newId = 'transport_' + report.id
         standardReport[newId] = {
           type: 'transport',
@@ -487,7 +531,7 @@ function mangle (stats) {
     const report = standardReport[id]
     if (report.type === 'transprort') {
       // RTCTransport has a pointer to the selectedCandidatePair...
-      let other = standardReport[report.selectedCandidatePairId]
+      let other = getReport(standardReport, report.selectedCandidatePairId)
       if (other) {
         other.transportId = report.id
       }
